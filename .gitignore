@@ -1,0 +1,16 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+venv/
+.env
+.DS_Store
+
+# --- Node.js ---
+node_modules/
+dist/
+build/
+npm-debug.log
+
+# --- Sui / Move ---
+build/
+Move.lock
