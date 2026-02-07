@@ -9,7 +9,7 @@
 Unlike traditional knowledge graphs, Sugar Protocol focuses on capturing the **Stance** and **Conflict** within news and public discourse. It utilizes AI Agents to deconstruct unstructured news into a four-layer topology (`Entity` -> `Stance` -> `Claim` -> `Evidence`) and immutably records these logical relationships on the blockchain. The result is a 3D "Galaxy of Truth" where conflicting narratives (red lines) and supporting arguments (green lines) are visually interwoven.
 
 ![Project Screenshot](./assets/screenshot.jpg)
-*(Replace with your red/green galaxy screenshot)*
+![alt text](frontend/screenTest/V_2.png)
 
 ## 🌟 Key Features
 
