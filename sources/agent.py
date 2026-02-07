@@ -1,119 +1,143 @@
-# agent.py (安全升級版)
+# sources/agent.py (L1-L4 族譜同步版)
 import json
 import os
 import requests
 from bs4 import BeautifulSoup
 from openai import OpenAI
-from dotenv import load_dotenv  # <--- 新增這行
-
-# 引入上鏈工具
-from chain_pusher import push_grain_to_chain, PACKAGE_ID
+from dotenv import load_dotenv
+from chain_pusher import push_grain_to_chain
 from pysui import SuiConfig, SyncClient
 
-# ==========================================
-# 🔑 設定區 (自動讀取 .env)
-# ==========================================
-# 1. 載入環境變數
+# 1. 初始化設定
 load_dotenv()
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+sui_client = SyncClient(SuiConfig.default_config())
+TARGET_URL = "https://abmedia.io" # 你可以隨時換成別的新聞網
 
-# 2. 獲取 Key (如果沒抓到會報錯提醒)
-api_key = os.getenv("OPENAI_API_KEY")
-if not api_key:
-    raise ValueError("❌ 找不到 API Key！請確認你有建立 .env 檔案並填入 OPENAI_API_KEY")
-
-# 3. 設定 OpenAI (新版 SDK 會自動讀取環境變數，但明確指定更保險)
-client = OpenAI(api_key=api_key)
-
-# ==========================================
-# 👁️ 眼睛：爬蟲模組
-# ==========================================
+# 2. 爬蟲模組
 def fetch_latest_news():
     print(f"🕵️ 正在偵察: {TARGET_URL} ...")
-    headers = {'User-Agent': 'Mozilla/5.0'}
     try:
-        response = requests.get(TARGET_URL, headers=headers)
+        headers = {'User-Agent': 'Mozilla/5.0'}
+        response = requests.get(TARGET_URL, headers=headers, timeout=10)
         soup = BeautifulSoup(response.text, 'html.parser')
         
+        # 針對 ABMedia 的選擇器
         articles = soup.select('.loop-card__title-link')
-        
         if not articles:
-            print("⚠️ 找不到文章，改用測試數據。")
-            return "台積電宣佈在高雄擴建第三廠，預計2026量產。", "https://example.com/tsmc"
+            print("⚠️ 找不到文章，使用測試數據。")
+            return "MicroStrategy 再次購買比特幣，市場情緒高昂。", "https://example.com/btc"
 
-        latest_article = articles[0]
-        title = latest_article.get_text(strip=True)
-        link = latest_article.get('href')
-        
-        print(f"📄 發現最新新聞: {title}")
-        print(f"🔗 連結: {link}")
-        
+        latest = articles[0]
+        title = latest.get_text(strip=True)
+        link = latest.get('href')
+        print(f"📄 鎖定新聞: {title}")
         return title, link
-        
     except Exception as e:
-        print(f"爬蟲錯誤: {e}")
+        print(f"❌ 爬蟲失敗: {e}")
         return None, None
 
-# ==========================================
-# 🧠 大腦：提煉模組 (Crystallizer)
-# ==========================================
-def crystallize_to_grains(text, url):
-    print("🧪 AI 正在提煉原子宣稱 (使用 GPT-4o-mini)...")
+# 3. 核心升級：L1-L4 族譜分析 Prompt
+def analyze_genealogy(text):
+    print("🧠 AI 正在進行族譜結構化分析 (Entity -> Stance -> Claim)...")
     
+    # 🔴 這裡就是你要修改的關鍵 Prompt！
     system_prompt = """
-    你是一個資訊原子化引擎。請將輸入的新聞標題或摘要，拆解為 1-3 個獨立的「原子宣稱」。
-    輸出格式必須是純粹的 JSON Array，不要 Markdown 標記。
-    格式範例:
-    [
-        {"content": "台積電擴建高雄廠", "bond_type": 0},
-        {"content": "預計2026年量產", "bond_type": 1}
-    ]
-    bond_type 定義: 0=GENESIS(新事實), 1=DERIVED(延伸細節), 3=CONTRADICTS(反駁)
+    你是一個言論族譜分析師。請將新聞內容拆解為「階層化」的 JSON 結構：
+
+    目標結構 (L1 -> L2 -> L3):
+    {
+      "entities": [
+        {
+          "name": "L1 實體 (如: Bitcoin, Elon Musk)",
+          "stances": [
+            {
+              "name": "L2 立場 (如: Bullish, Skeptical, Regulatory Pressure)",
+              "claims": [
+                {
+                  "content": "L3 具體論點或新聞事實",
+                  "bond_type": 1 
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+
+    bond_type 規則:
+    - 1 (綠色): 支持、延伸、事實陳述。
+    - 3 (紅色): 反駁、衝突、對立觀點。
     """
 
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": text}
-        ],
-        temperature=0.2
-    )
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": text}
+            ],
+            response_format={"type": "json_object"}
+        )
+        return json.loads(response.choices[0].message.content)
+    except Exception as e:
+        print(f"❌ AI 分析失敗: {e}")
+        return {}
 
-    raw_content = response.choices[0].message.content
-    clean_json = raw_content.replace("```json", "").replace("```", "").strip()
+# 4. 記憶與遞迴上鏈模組
+def get_or_mint_entity(name, url):
+    # 簡單的本地記憶，避免重複鑄造同一個實體
+    memory_file = "local_memory.json"
+    memory = []
+    if os.path.exists(memory_file):
+        with open(memory_file, "r") as f:
+            try: memory = json.load(f)
+            except: pass
     
-    return json.loads(clean_json)
+    # 檢查是否已存在
+    for item in memory:
+        if name.lower() in item['content'].lower(): 
+            return item['id']
 
-# ==========================================
-# 🤖 主程序
-# ==========================================
+    # 不存在則鑄造
+    print(f"🌱 鑄造新 L1 實體: {name}")
+    new_id = push_grain_to_chain(sui_client, name, [], 0, url)
+    if new_id:
+        memory.append({"id": new_id, "content": name})
+        with open(memory_file, "w") as f: json.dump(memory, f, ensure_ascii=False)
+    return new_id
+
 def run_agent():
-    # 初始化 Sui
-    cfg = SuiConfig.default_config()
-    sui_client = SyncClient(cfg) # 變數改名避免跟 openai client 混淆
-    print(f"👤 Agent 錢包: {cfg.active_address}")
+    print(f"👤 Agent Address: {SuiConfig.default_config().active_address}")
+    
+    # 1. 抓新聞
+    text, url = fetch_latest_news()
+    if not text: return
 
-    # 抓新聞
-    news_text, news_url = fetch_latest_news()
-    if not news_text:
+    # 2. AI 分析 (新版)
+    data = analyze_genealogy(text)
+    
+    # 3. 遞迴上鏈 (從 Entity -> Stance -> Claim)
+    if 'entities' not in data:
+        print("⚠️ AI 沒有回傳正確結構")
         return
 
-    # AI 拆解
-    try:
-        grains = crystallize_to_grains(news_text, news_url)
-        print(f"💎 提煉出 {len(grains)} 顆糖粒，準備上鏈...")
+    for ent in data['entities']:
+        # L1: 實體
+        l1_id = get_or_mint_entity(ent['name'], url)
+        if not l1_id: continue
         
-        for grain in grains:
-            push_grain_to_chain(
-                client=sui_client,
-                content=grain['content'],
-                parent_ids=[], 
-                bond_type=grain['bond_type'],
-                source_url=news_url
-            )
+        for st in ent.get('stances', []):
+            # L2: 立場 (父節點是 L1)
+            print(f"  🔹 L2 立場: {st['name']}")
+            l2_id = push_grain_to_chain(sui_client, f"{ent['name']}: {st['name']}", [l1_id], 1, url)
             
-    except Exception as e:
-        print(f"❌ 處理失敗: {e}")
+            if not l2_id: continue
+
+            for cl in st.get('claims', []):
+                # L3: 論點 (父節點是 L2)
+                print(f"    🌿 L3 論點: {cl['content'][:20]}...")
+                push_grain_to_chain(sui_client, cl['content'], [l2_id], cl['bond_type'], url)
 
 if __name__ == "__main__":
     run_agent()

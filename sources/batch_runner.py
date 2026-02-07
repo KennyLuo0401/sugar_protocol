@@ -5,15 +5,16 @@ import os
 
 # 你的目標網址清單
 urls = [
-    "https://abmedia.io/bitmine-tom-lee-jack-yi-garret-jin",
-    "https://abmedia.io/elon-musk-xai-is-hiring-crypto-finance-experts",
-    "https://abmedia.io/galaxy-digital-cryptoquant-bitcoin-price-drawdown-58k",
-    "https://abmedia.io/bitmine-7b-paper-loss-eth-trend-reserch",
-    "https://abmedia.io/openai-claims-xai-destroyed-evidence",
-    "https://abmedia.io/strategy-digital-credit-waived-from-30-percentage-dividend-tax",
-    "https://abmedia.io/xai-joins-spacex-to-ipo",
-    "https://abmedia.io/market-update-as-of-3rd-feb-2026",
-    "https://abmedia.io/is-btc-losing-its-position"
+    "https://abmedia.io/what-happens-to-minnesota",
+    "https://abmedia.io/strategy-2025-q4-financial-report",
+    "https://abmedia.io/uae-royal-invests-trump-wlfi-democrats-probe",
+    "https://abmedia.io/the-commodities-trade-becomes-the-new-investment",
+    "https://abmedia.io/tether-invests-anchorage-digital-bank-",
+    "https://abmedia.io/blackrocks-spot-bitcoin-etf-10-billion-daily-volume-record",
+    "https://abmedia.io/gemini-to-exit-u-k-eu-and-australia-reduce-staff-by-25-and-focus-on-u-s-and-prediction-markets",
+    "https://abmedia.io/30-days-of-main-coins",
+    "https://abmedia.io/pentagon-probe-spacex-alleged-chinese-investment",
+    "https://abmedia.io/tether-strategic-investment-gold-com",
 ]
 
 def run_batch():
@@ -35,8 +36,8 @@ def run_batch():
             print(f"❌ 執行錯誤: {e}")
 
         # 休息一下，避免被 ABMedia 的防火牆擋住 (429 Too Many Requests)
-        print("☕️ 休息 5 秒鐘...")
-        time.sleep(5)
+        print("☕️ 休息 1 秒鐘...")
+        time.sleep(1)
 
     print("\n" + "="*30)
     print("🎉 全部分析完成！請打開前端網頁查看星系聚合結果。")
