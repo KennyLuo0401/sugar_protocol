@@ -30,7 +30,8 @@ module sugar_protocol::core {
     }
 
     // --- 造糖入口函數 (Entry Function) ---
-    public fun mint_grain(
+    #[allow(lint(public_entry))]
+    public entry fun mint_grain(
         content: String,
         parent_ids: vector<ID>, // 指向上一層糖粒的 ID 列表
         bond_type: u8,
@@ -67,5 +68,27 @@ module sugar_protocol::core {
 
         // 4. 共享物件 (使其成為公共真理檔案，任何人可讀)
         transfer::share_object(grain);
+    }
+
+    // --- Mutator ---
+    public fun update_purity_score(grain: &mut SugarGrain, new_score: u64) {
+        grain.purity_score = new_score;
+    }
+
+    // --- Getters ---
+    public fun bond_type(grain: &SugarGrain): u8 {
+        grain.bond_type
+    }
+
+    public fun content(grain: &SugarGrain): &String {
+        &grain.content
+    }
+
+    public fun parents(grain: &SugarGrain): &vector<ID> {
+        &grain.parents
+    }
+
+    public fun purity_score(grain: &SugarGrain): u64 {
+        grain.purity_score
     }
 }

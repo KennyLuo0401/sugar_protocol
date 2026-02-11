@@ -5,16 +5,16 @@ import os
 
 # 你的目標網址清單
 urls = [
+    "https://abmedia.io/bitcoin-etf-outflow-and-inflow",
+    "https://abmedia.io/bitcoin-etf-outflow-and-inflow",
+    "https://abmedia.io/ark-cathie-wood-nancy-pelosi-stocks-2026",
+    "https://abmedia.io/elon-musk-xai-tesla-spacex-expand-ai-supply-chain",
     "https://abmedia.io/what-happens-to-minnesota",
-    "https://abmedia.io/strategy-2025-q4-financial-report",
-    "https://abmedia.io/uae-royal-invests-trump-wlfi-democrats-probe",
+    "https://abmedia.io/tether-invests-anchorage-digital-bank",
     "https://abmedia.io/the-commodities-trade-becomes-the-new-investment",
-    "https://abmedia.io/tether-invests-anchorage-digital-bank-",
-    "https://abmedia.io/blackrocks-spot-bitcoin-etf-10-billion-daily-volume-record",
     "https://abmedia.io/gemini-to-exit-u-k-eu-and-australia-reduce-staff-by-25-and-focus-on-u-s-and-prediction-markets",
     "https://abmedia.io/30-days-of-main-coins",
     "https://abmedia.io/pentagon-probe-spacex-alleged-chinese-investment",
-    "https://abmedia.io/tether-strategic-investment-gold-com",
 ]
 
 def run_batch():

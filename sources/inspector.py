@@ -70,7 +70,7 @@ def get_or_mint_entity(name, url):
             except: pass
     
     for item in memory:
-        if name.lower() in item['content'].lower(): return item['id']
+        if name.lower() == item['content'].lower(): return item['id']
     
     print(f"🌱 鑄造新實體: {name}")
     new_id = push_grain_to_chain(sui_client, name, [], 0, url)

@@ -18,23 +18,38 @@ const SugarMap = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // 1. 抓取最新的 100 筆事件
-        const events = await client.queryEvents({
-          query: { MoveEventType: `${PACKAGE_ID}::core::GrainMinted` },
-          limit: 100, 
-          order: "descending"
-        });
+        // 1. 用 cursor-based 分頁抓取所有事件
+        const allEvents = [];
+        let cursor = null;
+        let hasNext = true;
 
-        if (events.data.length === 0) return;
+        while (hasNext) {
+          const page = await client.queryEvents({
+            query: { MoveEventType: `${PACKAGE_ID}::core::GrainMinted` },
+            limit: 50,
+            order: "descending",
+            ...(cursor ? { cursor } : {}),
+          });
+          allEvents.push(...page.data);
+          hasNext = page.hasNextPage;
+          cursor = page.nextCursor;
+        }
+
+        if (allEvents.length === 0) return;
 
         // 2. 提取物件 ID
-        const objectIds = events.data.map(e => e.parsedJson.grain_id);
+        const objectIds = allEvents.map(e => e.parsedJson.grain_id);
         
-        // 3. 批量讀取內容
-        const objects = await client.multiGetObjects({
-          ids: objectIds,
-          options: { showContent: true }
-        });
+        // 3. 批量讀取內容 (每批最多 50 個，避免 API 限制)
+        const objects = [];
+        for (let i = 0; i < objectIds.length; i += 50) {
+          const batch = objectIds.slice(i, i + 50);
+          const result = await client.multiGetObjects({
+            ids: batch,
+            options: { showContent: true }
+          });
+          objects.push(...result);
+        }
 
         const rawNodes = [];
         const rawLinks = [];
